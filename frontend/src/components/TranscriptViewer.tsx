@@ -4,10 +4,12 @@ import clsx from 'clsx';
 import { HighlightedPhrase } from '../stores/analysisStore';
 
 interface TranscriptViewerProps {
-  transcript: string;
-  highlights: HighlightedPhrase[];
-  language: string;
+  transcript?: string;
+  suspiciousPhrases?: string[];
+  keywords?: string[];
+  [key: string]: any;
 }
+
 
 export default function TranscriptViewer({ transcript, highlights, language }: TranscriptViewerProps) {
   const { t } = useTranslation();
