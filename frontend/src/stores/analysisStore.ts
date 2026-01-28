@@ -23,7 +23,18 @@ export interface AnalysisResult {
   confidence_score: number;
   duration_seconds: number;
   analyzed_at: string | null;
+
+  // ✅ ADD THESE
+  detected_keywords?: string[];
+  linguistic_score?: number;
+  acoustic_score?: number;
+  behavioral_score?: number;
+  confidence?: number;
+  explanation?: string;
+  created_at?: string;
+  duration?: number;
 }
+
 
 export interface FraudIndicator {
   type: string;
@@ -56,7 +67,13 @@ export interface AcousticFeatures {
   speaking_rate?: number;
   stress_level?: number;
   synthetic_probability?: number;
+
+  // ✅ ADD THESE
+  tempo?: number;
+  zero_crossing_rate?: number;
+  spectral_centroid?: number;
 }
+
 
 export interface BehavioralPatterns {
   intent?: IntentAnalysis;

@@ -148,7 +148,7 @@ export default function CallDetailPage() {
         <MetadataCard
           icon={Calendar}
           label="Analyzed"
-          value={new Date(call.created_at).toLocaleDateString()}
+          value={call.created_at ? new Date(call.created_at).toLocaleDateString() : 'N/A'}
         />
         <MetadataCard
           icon={Clock}
@@ -185,7 +185,7 @@ export default function CallDetailPage() {
             >
               <TranscriptViewer
                 transcript={call.transcript}
-                suspiciousPhrases={call.detected_keywords || []}
+                suspiciousPhrases={call.detected_keywords || call.suspicious_keywords || []}
               />
             </motion.div>
           )}
@@ -198,7 +198,7 @@ export default function CallDetailPage() {
           >
             <FraudIndicators
               indicators={call.fraud_indicators || []}
-              keywords={call.detected_keywords || []}
+              keywords={call.detected_keywords || call.suspicious_keywords || []}
             />
           </motion.div>
         </div>
@@ -216,7 +216,7 @@ export default function CallDetailPage() {
               Risk Assessment
             </h3>
             <div className="flex justify-center">
-              <RiskMeter score={call.risk_score} size={180} />
+              <RiskMeter score={call.risk_score} size="lg" />
             </div>
           </motion.div>
 
@@ -233,19 +233,19 @@ export default function CallDetailPage() {
             <div className="space-y-4">
               <ScoreBar
                 label="Linguistic Score"
-                value={call.linguistic_score || 0}
+                value={call.linguistic_score ?? 0}
               />
               <ScoreBar
                 label="Acoustic Score"
-                value={call.acoustic_score || 0}
+                value={call.acoustic_score ?? 0}
               />
               <ScoreBar
                 label="Behavioral Score"
-                value={call.behavioral_score || 0}
+                value={call.behavioral_score ?? call.risk_score ?? 0}
               />
               <ScoreBar
                 label="Confidence"
-                value={call.confidence * 100 || 0}
+                value={(call.confidence ?? call.confidence_score ?? 0) * 100}
               />
             </div>
           </motion.div>
@@ -287,13 +287,13 @@ export default function CallDetailPage() {
                 </div>
                 <div className="text-center p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
                   <div className="text-lg font-semibold text-slate-900 dark:text-white">
-                    {(call.acoustic_features.zero_crossing_rate * 100)?.toFixed(1) || 'N/A'}%
+                    {((call.acoustic_features.zero_crossing_rate ?? 0) * 100).toFixed(1)}%
                   </div>
                   <div className="text-xs text-slate-500">ZCR</div>
                 </div>
                 <div className="text-center p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
                   <div className="text-lg font-semibold text-slate-900 dark:text-white">
-                    {(call.acoustic_features.spectral_centroid / 1000)?.toFixed(1) || 'N/A'}k
+                    {((call.acoustic_features.spectral_centroid ?? 0) / 1000).toFixed(1)}k
                   </div>
                   <div className="text-xs text-slate-500">Spectral</div>
                 </div>
@@ -304,7 +304,7 @@ export default function CallDetailPage() {
       </div>
 
       {/* AI Explanation */}
-      {call.explanation && (
+      {(call.explanation || call.ai_explanation) && (
         <motion.div
           className="card p-6"
           initial={{ opacity: 0, y: 20 }}
@@ -316,7 +316,7 @@ export default function CallDetailPage() {
             <span>AI Explanation</span>
           </h3>
           <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-            {call.explanation}
+            {call.explanation || call.ai_explanation}
           </p>
         </motion.div>
       )}

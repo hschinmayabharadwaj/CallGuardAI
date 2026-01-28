@@ -31,14 +31,22 @@ export const analyzeAudio = async (file: File, callerNumber?: string): Promise<A
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data;
+  return {
+    ...response.data,
+    explanation: response.data.ai_explanation,
+    suspicious_keywords: response.data.detected_keywords,
+  };
 };
 
 export const analyzeText = async (text: string, callerNumber?: string): Promise<AnalysisResult> => {
   const response = await api.post('/analyze/text', null, {
     params: { text, caller_number: callerNumber },
   });
-  return response.data;
+  return {
+    ...response.data,
+    explanation: response.data.ai_explanation,
+    suspicious_keywords: response.data.detected_keywords,
+  };
 };
 
 export const getAnalysisStatus = async (callId: string) => {
@@ -59,32 +67,9 @@ export interface CallsQueryParams {
   search?: string;
 }
 
-export interface CallRecord {
-  call_id: string;
-  classification: string;
-  risk_score: number;
-  transcript?: string;
-  duration?: number;
+export interface CallRecord extends AnalysisResult {
   created_at: string;
-  fraud_indicators?: { indicator: string; severity: string; description: string }[];
-  detected_keywords?: string[];
-  voice_characteristics?: {
-    tone: string;
-    speaking_rate: string;
-    stress_level: string;
-    naturalness: number;
-  };
-  acoustic_features?: {
-    pitch_mean: number;
-    tempo: number;
-    zero_crossing_rate: number;
-    spectral_centroid: number;
-  };
-  linguistic_score?: number;
-  acoustic_score?: number;
-  behavioral_score?: number;
-  confidence: number;
-  explanation?: string;
+  duration?: number;
 }
 
 export interface CallsResponse {
@@ -114,7 +99,11 @@ export const getCallsCount = async (classification?: string) => {
 
 export const getCallDetail = async (callId: string): Promise<AnalysisResult> => {
   const response = await api.get(`/calls/${callId}`);
-  return response.data;
+  return {
+    ...response.data,
+    explanation: response.data.ai_explanation,
+    suspicious_keywords: response.data.detected_keywords,
+  };
 };
 
 // Alias for getCallDetail used in CallDetailPage
