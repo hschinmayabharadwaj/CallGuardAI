@@ -1,8 +1,18 @@
 import axios from 'axios';
 import { AnalysisResult } from '../stores/analysisStore';
 
+// API configuration - works for both local and production
+const getBaseURL = () => {
+  // In production (Vercel), use the environment variable
+  if (import.meta.env.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL}/api/v1`;
+  }
+  // In development, use proxy
+  return '/api/v1';
+};
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
