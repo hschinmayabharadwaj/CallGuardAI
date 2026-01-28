@@ -62,6 +62,10 @@ logs/
 .env.local
 .env.*.local
 
+# Keep .env.example for reference
+!.env.example
+!frontend/.env.local
+
 # ML Models (optional - comment out if you want to include models)
 *.pth
 *.pkl
