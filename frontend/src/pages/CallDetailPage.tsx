@@ -137,7 +137,7 @@ export default function CallDetailPage() {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-4xl font-bold">{call.risk_score.toFixed(0)}</div>
+          <div className="text-4xl font-bold">{(call.risk_score ?? 0).toFixed(0)}</div>
           <div className="text-sm opacity-90">Risk Score</div>
         </div>
       </motion.div>
@@ -184,6 +184,8 @@ export default function CallDetailPage() {
             >
               <TranscriptViewer
                 transcript={call.transcript}
+                highlights={call.highlighted_phrases}
+                language={call.transcript_language}
                 suspiciousPhrases={call.detected_keywords || call.suspicious_keywords || []}
               />
             </motion.div>
@@ -256,7 +258,10 @@ export default function CallDetailPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <VoiceAnalysis characteristics={call.voice_characteristics} />
+              <VoiceAnalysis 
+                characteristics={call.voice_characteristics} 
+                features={call.acoustic_features}
+              />
             </motion.div>
           )}
 
@@ -346,6 +351,8 @@ function MetadataCard({
 }
 
 function ScoreBar({ label, value }: { label: string; value: number }) {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  
   const getColor = (score: number) => {
     if (score < 40) return 'bg-success-500';
     if (score < 70) return 'bg-warning-500';
@@ -357,14 +364,14 @@ function ScoreBar({ label, value }: { label: string; value: number }) {
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm text-slate-600 dark:text-slate-400">{label}</span>
         <span className="text-sm font-semibold text-slate-900 dark:text-white">
-          {value.toFixed(1)}%
+          {safeValue.toFixed(1)}%
         </span>
       </div>
       <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
         <motion.div
-          className={clsx('h-full rounded-full', getColor(value))}
+          className={clsx('h-full rounded-full', getColor(safeValue))}
           initial={{ width: 0 }}
-          animate={{ width: `${value}%` }}
+          animate={{ width: `${Math.min(100, Math.max(0, safeValue))}%` }}
           transition={{ duration: 0.5 }}
         />
       </div>

@@ -6,6 +6,7 @@
   <img src="https://img.shields.io/badge/FastAPI-0.100+-009688.svg" alt="FastAPI">
   <img src="https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg" alt="TypeScript">
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
+  <img src="https://img.shields.io/badge/Deploy-Vercel%20%2B%20Render-brightgreen.svg" alt="Deploy">
 </p>
 
 <p align="center">
@@ -14,18 +15,29 @@
 
 ---
 
+## 🚀 Live Demo
+
+- **Frontend (Vercel)**: [Deploy your own →](https://vercel.com)
+- **Backend (Render)**: [Deploy your own →](https://render.com)
+- **GitHub**: https://github.com/Bhanutejayadalla/CallGuardAI
+
+---
+
 ## 📑 Table of Contents
 
+- [Live Demo](#-live-demo)
 - [Features](#-features)
 - [Screenshots](#-screenshots)
 - [Architecture](#-architecture)
 - [Quick Start](#-quick-start)
+- [Deployment](#-deployment)
 - [API Reference](#-api-endpoints)
 - [AI Voice Detection](#-ai-voice-detection-algorithm)
 - [Supported Languages](#-supported-languages)
 - [Tech Stack](#-tech-stack)
 - [Testing](#-testing)
 - [Performance](#-performance)
+- [Recent Updates](#-recent-updates)
 
 ---
 
@@ -198,6 +210,54 @@ npm run dev
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
+
+---
+
+## 🌐 Deployment
+
+### Deploy to Production
+
+The project is configured for easy deployment to **Vercel** (frontend) and **Render** (backend).
+
+#### 1. Deploy Backend to Render
+
+1. Go to [render.com](https://render.com/) and sign in with GitHub
+2. Create new **Web Service**
+3. Connect your **CallGuardAI** repository
+4. Configure:
+   - **Root Directory**: `backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables:
+   ```
+   DATABASE_URL=sqlite:///./callguard.db
+   JWT_SECRET=your-secret-key-min-32-chars
+   WHISPER_MODEL=base
+   LOG_LEVEL=INFO
+   CORS_ORIGINS=https://your-vercel-app.vercel.app
+   ```
+6. Deploy and copy your backend URL
+
+#### 2. Deploy Frontend to Vercel
+
+1. Go to [vercel.com/new](https://vercel.com/new)
+2. Import your **CallGuardAI** repository
+3. Configure:
+   - **Framework Preset**: Vite
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Add environment variable:
+   ```
+   VITE_API_URL=https://your-backend-url.onrender.com
+   ```
+5. Deploy
+
+#### 3. Update CORS
+
+After deploying frontend, update `CORS_ORIGINS` in Render with your Vercel URL.
+
+📚 **Detailed Deployment Guide**: See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
 
 ---
 
@@ -464,12 +524,32 @@ All tests completed successfully!
 
 ---
 
+## � Recent Updates
+
+### Version 1.2.0 (Latest)
+- ✅ Fixed field mapping between backend and frontend
+- ✅ Added proper null safety in components
+- ✅ Fixed history page with pagination and total count
+- ✅ Improved call detail page rendering
+- ✅ Enhanced error handling in TranscriptViewer and VoiceAnalysis
+- ✅ Fixed TypeScript build errors for Vercel deployment
+- ✅ Updated deployment configuration for Vercel and Render
+
+### Version 1.1.0
+- ✅ AI Voice Detection API with 5 languages
+- ✅ Multi-language support (Tamil, English, Hindi, Malayalam, Telugu)
+- ✅ Real-time call analysis
+- ✅ Comprehensive dashboard with analytics
+
+---
+
 ## 🛡️ Security Features
 
 - Input validation and sanitization
 - Rate limiting on API endpoints
 - Secure file handling with temp file cleanup
 - CORS configuration for frontend access
+- JWT authentication (optional)
 
 ---
 
@@ -479,6 +559,19 @@ MIT License - See LICENSE file for details
 
 ---
 
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
 <p align="center">
-  Made with ❤️ for the Hackathon
+  Made with ❤️ for the Hackathon<br>
+  <a href="https://github.com/Bhanutejayadalla/CallGuardAI">⭐ Star us on GitHub</a>
 </p>

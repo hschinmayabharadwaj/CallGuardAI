@@ -36,8 +36,11 @@ export default function VoiceAnalysis({ characteristics, features }: VoiceAnalys
     }
   };
 
-  const speedConfig = getSpeedLabel(characteristics.speed);
-  const stressConfig = getStressLevel(characteristics.stress);
+  const speedConfig = getSpeedLabel(characteristics?.speed);
+  const stressConfig = getStressLevel(characteristics?.stress);
+  
+  // Safely access features with default empty object
+  const safeFeatures = features || {};
 
   return (
     <div className="card p-6">
@@ -73,9 +76,9 @@ export default function VoiceAnalysis({ characteristics, features }: VoiceAnalys
             <span className={clsx('text-lg font-semibold', speedConfig.color)}>
               {speedConfig.label}
             </span>
-            {features.speaking_rate && (
+            {safeFeatures.speaking_rate && (
               <span className="text-sm text-slate-500">
-                ({Math.round(features.speaking_rate)} WPM)
+                ({Math.round(safeFeatures.speaking_rate)} WPM)
               </span>
             )}
           </div>
@@ -165,35 +168,35 @@ export default function VoiceAnalysis({ characteristics, features }: VoiceAnalys
               Technical Details
             </summary>
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              {features.duration && (
+              {safeFeatures.duration && (
                 <div>
                   <span className="text-slate-500">Duration</span>
                   <p className="font-medium text-slate-900 dark:text-white">
-                    {features.duration.toFixed(1)}s
+                    {safeFeatures.duration.toFixed(1)}s
                   </p>
                 </div>
               )}
-              {features.pitch_mean && (
+              {safeFeatures.pitch_mean && (
                 <div>
                   <span className="text-slate-500">Pitch (Mean)</span>
                   <p className="font-medium text-slate-900 dark:text-white">
-                    {features.pitch_mean.toFixed(0)} Hz
+                    {safeFeatures.pitch_mean.toFixed(0)} Hz
                   </p>
                 </div>
               )}
-              {features.energy_mean && (
+              {safeFeatures.energy_mean && (
                 <div>
                   <span className="text-slate-500">Energy (Mean)</span>
                   <p className="font-medium text-slate-900 dark:text-white">
-                    {features.energy_mean.toFixed(4)}
+                    {safeFeatures.energy_mean.toFixed(4)}
                   </p>
                 </div>
               )}
-              {features.synthetic_probability !== undefined && (
+              {safeFeatures.synthetic_probability !== undefined && (
                 <div>
                   <span className="text-slate-500">Synthetic Prob.</span>
                   <p className="font-medium text-slate-900 dark:text-white">
-                    {(features.synthetic_probability * 100).toFixed(1)}%
+                    {(safeFeatures.synthetic_probability * 100).toFixed(1)}%
                   </p>
                 </div>
               )}

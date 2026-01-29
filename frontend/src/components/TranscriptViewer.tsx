@@ -2,15 +2,25 @@ import { useTranslation } from 'react-i18next';
 import { FileText, Globe } from 'lucide-react';
 import clsx from 'clsx';
 
+interface Highlight {
+  text: string;
+  start: number;
+  end: number;
+  category: string;
+  severity: string;
+}
+
 interface TranscriptViewerProps {
   transcript?: string;
   suspiciousPhrases?: string[];
   keywords?: string[];
-  [key: string]: any;
+  highlights?: Highlight[];
+  language?: string;
 }
 
 
-export default function TranscriptViewer({ transcript, highlights, language }: TranscriptViewerProps) {
+export default function TranscriptViewer({ transcript, highlights, language = 'en', suspiciousPhrases: _suspiciousPhrases }: TranscriptViewerProps) {
+  void _suspiciousPhrases; // Suppress unused warning - may be used for highlighting in future
   const { t } = useTranslation();
 
   const languageNames: Record<string, string> = {
@@ -109,7 +119,7 @@ export default function TranscriptViewer({ transcript, highlights, language }: T
         </div>
         <div className="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-400">
           <Globe className="h-4 w-4" />
-          <span>{languageNames[language] || language.toUpperCase()}</span>
+          <span>{language ? (languageNames[language] || language.toUpperCase()) : 'Unknown'}</span>
         </div>
       </div>
 

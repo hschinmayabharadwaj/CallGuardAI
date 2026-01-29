@@ -15,7 +15,7 @@ from app.models.call import Call, CallClassification, CallStatus
 router = APIRouter()
 
 
-@router.get("/", response_model=List[CallResponse])
+@router.get("/")
 async def get_calls(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -30,39 +30,45 @@ async def get_calls(
     """
     Get call history with filtering and pagination
     """
-    query = select(Call).where(Call.status == CallStatus.COMPLETED)
+    # Build base query
+    base_query = select(Call).where(Call.status == CallStatus.COMPLETED)
     
     # Apply filters
     if classification:
-        query = query.where(Call.classification == CallClassification(classification))
+        base_query = base_query.where(Call.classification == CallClassification(classification))
     
     if min_risk_score is not None:
-        query = query.where(Call.risk_score >= min_risk_score)
+        base_query = base_query.where(Call.risk_score >= min_risk_score)
     
     if max_risk_score is not None:
-        query = query.where(Call.risk_score <= max_risk_score)
+        base_query = base_query.where(Call.risk_score <= max_risk_score)
     
     if start_date:
-        query = query.where(Call.call_timestamp >= start_date)
+        base_query = base_query.where(Call.call_timestamp >= start_date)
     
     if end_date:
-        query = query.where(Call.call_timestamp <= end_date)
+        base_query = base_query.where(Call.call_timestamp <= end_date)
     
     if search:
         search_term = f"%{search}%"
-        query = query.where(
+        base_query = base_query.where(
             (Call.transcript.ilike(search_term)) |
             (Call.caller_number.ilike(search_term)) |
             (Call.callee_number.ilike(search_term))
         )
     
+    # Get total count
+    count_query = select(func.count()).select_from(base_query.alias())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+    
     # Order and paginate
-    query = query.order_by(desc(Call.created_at)).offset(skip).limit(limit)
+    query = base_query.order_by(desc(Call.created_at)).offset(skip).limit(limit)
     
     result = await db.execute(query)
     calls = result.scalars().all()
     
-    return [CallResponse(
+    calls_data = [CallResponse(
         id=call.id,
         call_id=call.call_id,
         caller_number=call.caller_number,
@@ -76,6 +82,13 @@ async def get_calls(
         created_at=call.created_at,
         analyzed_at=call.analyzed_at
     ) for call in calls]
+    
+    return {
+        "calls": calls_data,
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }
 
 
 @router.get("/count")
