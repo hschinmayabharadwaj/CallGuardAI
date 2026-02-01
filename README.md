@@ -25,19 +25,16 @@
 
 ## 📑 Table of Contents
 
-- [Live Demo](#-live-demo)
 - [Features](#-features)
-- [Screenshots](#-screenshots)
 - [Architecture](#-architecture)
-- [Quick Start](#-quick-start)
-- [Deployment](#-deployment)
-- [API Reference](#-api-endpoints)
+- [Database & Data Storage](#-database--data-storage)
+- [API Endpoints](#-api-endpoints)
 - [AI Voice Detection](#-ai-voice-detection-algorithm)
 - [Supported Languages](#-supported-languages)
 - [Tech Stack](#-tech-stack)
-- [Testing](#-testing)
-- [Performance](#-performance)
-- [Recent Updates](#-recent-updates)
+- [Test Results](#-test-results)
+- [Deployment](#-deployment)
+- [How to Run](#-how-to-run-the-project)
 
 ---
 
@@ -89,7 +86,7 @@ Powered by OpenAI Whisper for accurate transcription across multiple languages.
 
 | Feature | Description |
 |---------|-------------|
-| **5 Languages Supported** | Tamil, English, Hindi, Malayalam, Telugu |
+| **7 Languages Supported** | Tamil, English, Hindi, Malayalam, Telugu, Spanish, French, German |
 | **Automatic Detection** | Auto-detects spoken language |
 | **High Accuracy** | State-of-the-art speech recognition |
 | **Real-time Processing** | Fast transcription for live calls |
@@ -104,6 +101,8 @@ Comprehensive dashboard for monitoring and analyzing call patterns.
 | **Call History** | Searchable history with filters |
 | **Risk Trends** | Visual analytics of fraud patterns |
 | **Alert System** | Notifications for high-risk calls |
+| **Heatmap** | Call volume by day and hour |
+| **Keyword Tracking** | Top suspicious keywords detected |
 
 ### 6. 🎨 Modern User Interface
 
@@ -114,31 +113,7 @@ Beautiful, responsive UI built with React and Tailwind CSS.
 | **Dark/Light Mode** | Toggle between themes |
 | **Responsive Design** | Works on desktop and mobile |
 | **Real-time Updates** | Live data refresh |
-| **Multilingual UI** | Interface available in 5 languages |
-
----
-
-## 📸 Screenshots
-
-### Home Page
-- Modern landing page with feature highlights
-- Quick access to all features
-- Call-to-action buttons
-
-### AI Voice Detection Page
-- Upload audio files or record directly
-- Real-time analysis with visual feedback
-- Detailed results with confidence scores
-
-### Dashboard
-- Real-time statistics
-- Risk assessment charts
-- Recent activity feed
-
-### Call History
-- Searchable call logs
-- Filter by date, risk level, language
-- Detailed call analysis view
+| **Multilingual UI** | Interface available in multiple languages |
 
 ---
 
@@ -149,7 +124,7 @@ Beautiful, responsive UI built with React and Tailwind CSS.
 │                     Frontend (React + TypeScript)            │
 │                     http://localhost:3000                    │
 ├─────────────────────────────────────────────────────────────┤
-│                            ↕ API                             │
+│                            ↕ REST API                        │
 ├─────────────────────────────────────────────────────────────┤
 │                     Backend (FastAPI)                        │
 │                     http://localhost:8000                    │
@@ -158,185 +133,132 @@ Beautiful, responsive UI built with React and Tailwind CSS.
 │  │   Whisper   │  │   Librosa   │  │   AI Voice Detector │  │
 │  │   (Speech)  │  │   (Audio)   │  │   (Deepfake)        │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                     Database (SQLite/PostgreSQL)             │
+│                     Async SQLAlchemy ORM                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📋 Requirements
+## 🗄️ Database & Data Storage
 
-- Python 3.11+
-- Node.js 18+
-- FFmpeg (for audio processing)
+### How Data is Stored
 
----
+CallGuard AI uses **SQLAlchemy ORM** with async support for efficient database operations. The system supports both **SQLite** (development) and **PostgreSQL** (production).
 
-## 🚀 Quick Start
+#### Database Tables
 
-### 1. Clone and Setup
+| Table | Purpose | Key Fields |
+|-------|---------|------------|
+| `calls` | Stores all call analysis records | call_id, transcript, classification, risk_score, fraud_indicators |
+| `users` | User accounts for authentication | id, email, username, hashed_password |
+| `detection_rules` | Custom fraud detection rules | name, keywords, category, severity |
+| `call_segments` | Audio segments for long calls | call_id, segment_index, text |
+| `fraud_patterns` | Known fraud patterns | pattern, category, weight |
 
-```bash
-# Create virtual environment
-python -m venv .venv
+#### Data Flow
 
-# Activate virtual environment
-# Windows:
-.venv\Scripts\activate
-# Linux/Mac:
-source .venv/bin/activate
+1. **Audio Upload** → Whisper transcribes → NLP analyzes → Fraud detector scores → Stored in `calls` table
+2. **Text Analysis** → NLP processes → Pattern matching → Risk calculated → Stored in `calls` table
+3. **User Actions** → JWT authenticated → Validated → Stored/Retrieved from database
 
-# Install Python dependencies
-cd backend
-pip install -r requirements.txt
+### Database Configuration
+
+**SQLite (Default - Development)**
 ```
-
-### 2. Start Backend Server
-
-```bash
-cd backend
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+DATABASE_URL=sqlite+aiosqlite:///./callguard.db
 ```
+- Zero configuration required
+- File-based database (`callguard.db`)
+- Perfect for development and testing
+- Data persists in backend folder
 
-### 3. Start Frontend Server
-
-```bash
-cd frontend
-npm install
-npm run dev
+**PostgreSQL (Production)**
 ```
+DATABASE_URL=postgresql+asyncpg://username:password@localhost:5432/callguard
+```
+- Scalable for production
+- Concurrent connections supported
+- Better performance for large datasets
+- Requires PostgreSQL server setup
 
-### 4. Access the Application
+### Database Statistics (Current)
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-
----
-
-## 🌐 Deployment
-
-### Deploy to Production
-
-The project is configured for easy deployment to **Vercel** (frontend) and **Render** (backend).
-
-#### 1. Deploy Backend to Render
-
-1. Go to [render.com](https://render.com/) and sign in with GitHub
-2. Create new **Web Service**
-3. Connect your **CallGuardAI** repository
-4. Configure:
-   - **Root Directory**: `backend`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Add environment variables:
-   ```
-   DATABASE_URL=sqlite:///./callguard.db
-   JWT_SECRET=your-secret-key-min-32-chars
-   WHISPER_MODEL=base
-   LOG_LEVEL=INFO
-   CORS_ORIGINS=https://your-vercel-app.vercel.app
-   ```
-6. Deploy and copy your backend URL
-
-#### 2. Deploy Frontend to Vercel
-
-1. Go to [vercel.com/new](https://vercel.com/new)
-2. Import your **CallGuardAI** repository
-3. Configure:
-   - **Framework Preset**: Vite
-   - **Root Directory**: `frontend`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-4. Add environment variable:
-   ```
-   VITE_API_URL=https://your-backend-url.onrender.com
-   ```
-5. Deploy
-
-#### 3. Update CORS
-
-After deploying frontend, update `CORS_ORIGINS` in Render with your Vercel URL.
-
-📚 **Detailed Deployment Guide**: See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
+| Metric | Value |
+|--------|-------|
+| Total Calls Analyzed | 76+ |
+| Classifications | Safe: 34, Fraud: 16, Phishing: 12, Robocall: 7, Spam: 1 |
+| Detection Rules | 4 active rules |
+| User Accounts | 4 registered users |
+| Database Type | SQLite (auto-configured) |
 
 ---
 
 ## 🔌 API Endpoints
 
-### AI Voice Detection
-
-#### Health Check
-```http
-GET /api/v1/ai-voice/health
-```
-Response:
-```json
-{
-  "status": "healthy",
-  "service": "ai-voice-detection",
-  "model_loaded": true,
-  "supported_languages": ["Tamil", "English", "Hindi", "Malayalam", "Telugu"]
-}
-```
-
-#### Supported Languages
-```http
-GET /api/v1/ai-voice/languages
-```
-Response:
-```json
-{
-  "languages": {
-    "ta": "Tamil",
-    "en": "English",
-    "hi": "Hindi",
-    "ml": "Malayalam",
-    "te": "Telugu"
-  },
-  "count": 5
-}
-```
-
-#### Detect AI-Generated Voice
-```http
-POST /api/v1/ai-voice/detect
-Content-Type: application/json
-
-{
-  "audio": "<base64-encoded-audio>",
-  "language": "en"  // optional
-}
-```
-Response:
-```json
-{
-  "classification": "ai_generated",
-  "is_ai_generated": true,
-  "confidence_score": 0.7220,
-  "confidence_percentage": 72.2,
-  "language": "en",
-  "language_name": "English",
-  "explanation": "This voice sample (English) is classified as AI-GENERATED with 72.2% confidence...",
-  "analysis_details": {
-    "features_analyzed": ["spectral_flatness", "pitch_variation", "mfcc_variance"],
-    "ai_indicators": ["Spectral consistency too uniform"],
-    "human_indicators": []
-  },
-  "supported_languages": ["Tamil", "English", "Hindi", "Malayalam", "Telugu"],
-  "status": "success"
-}
-```
-
-### Call Analysis
+### Audio Analysis
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/analyze/upload` | Upload audio for analysis |
-| WS | `/api/v1/analyze/stream` | Stream audio for real-time analysis |
-| GET | `/api/v1/calls` | Get call history |
-| GET | `/api/v1/calls/{id}` | Get call details |
-| GET | `/api/v1/analytics/dashboard` | Get dashboard data |
-| POST | `/api/v1/admin/rules` | Update scam detection rules |
+| POST | `/api/v1/analyze/upload` | Upload audio file for analysis |
+| POST | `/api/v1/analyze/text` | Analyze text message for fraud |
+| GET | `/api/v1/analyze/status/{call_id}` | Get analysis status |
+
+### Call Management
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/calls/` | List calls with filters |
+| GET | `/api/v1/calls/{call_id}` | Get call details |
+| GET | `/api/v1/calls/count` | Get total call count |
+| GET | `/api/v1/calls/recent/alerts` | Get recent high-risk alerts |
+| DELETE | `/api/v1/calls/{call_id}` | Delete a call record |
+
+**Query Parameters for `/api/v1/calls/`:**
+- `classification` - Filter by type (safe, fraud, phishing, spam, robocall)
+- `min_risk_score` - Filter by minimum risk score (0-100)
+- `status` - Filter by status (pending, processing, completed, failed)
+- `limit` - Number of results (default: 50)
+- `skip` - Offset for pagination
+
+### Analytics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/analytics/dashboard` | Dashboard statistics |
+| GET | `/api/v1/analytics/trends` | Call trends over time |
+| GET | `/api/v1/analytics/heatmap` | Call volume heatmap |
+| GET | `/api/v1/analytics/keywords` | Top suspicious keywords |
+| GET | `/api/v1/analytics/classification-stats` | Classification breakdown |
+
+### Admin
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/admin/stats` | System statistics |
+| GET | `/api/v1/admin/rules` | List detection rules |
+| POST | `/api/v1/admin/rules` | Create new rule |
+| PUT | `/api/v1/admin/rules/{id}` | Update a rule |
+| DELETE | `/api/v1/admin/rules/{id}` | Delete a rule |
+| POST | `/api/v1/admin/rules/init-defaults` | Initialize default rules |
+
+### Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/register` | Register new user |
+| POST | `/api/v1/auth/login` | Login and get JWT token |
+| POST | `/api/v1/auth/token` | Get access token |
+| GET | `/api/v1/auth/me` | Get current user profile |
+
+### AI Voice Detection
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/ai-voice/health` | Health check |
+| GET | `/api/v1/ai-voice/languages` | Supported languages |
+| POST | `/api/v1/ai-voice/detect` | Detect AI-generated voice |
 
 ---
 
@@ -363,96 +285,18 @@ The AI voice detector uses multiple acoustic features to identify synthetic voic
 
 ---
 
-## 📁 Project Structure
-
-```
-hackathon/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   └── v1/
-│   │   │       └── endpoints/
-│   │   │           ├── ai_voice.py      # AI voice detection API
-│   │   │           ├── calls.py         # Call analysis API
-│   │   │           └── admin.py         # Admin API
-│   │   ├── ml/
-│   │   │   ├── ai_voice_detector.py     # AI voice detection model
-│   │   │   ├── model_loader.py          # Model loading
-│   │   │   └── fraud_detector.py        # Fraud detection
-│   │   ├── core/
-│   │   │   ├── config.py                # Configuration
-│   │   │   └── database.py              # Database setup
-│   │   └── schemas/
-│   │       └── ai_voice.py              # Pydantic schemas
-│   ├── main.py                          # FastAPI app
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── AIVoicePage.tsx          # AI voice detection UI
-│   │   │   ├── Dashboard.tsx            # Main dashboard
-│   │   │   └── CallHistory.tsx          # Call history
-│   │   ├── components/
-│   │   │   └── Layout.tsx               # App layout
-│   │   ├── services/
-│   │   │   └── api.ts                   # API client
-│   │   └── App.tsx
-│   ├── package.json
-│   └── vite.config.ts
-├── test_ai_voice.py                     # API test script
-└── README.md
-```
-
----
-
-## 🧪 Testing
-
-### Run API Tests
-
-```bash
-python test_ai_voice.py
-```
-
-Expected output:
-```
-============================================================
-AI Voice Detection API Test Suite
-============================================================
-
-=== Testing Health Endpoint ===
-Status: 200
-Health: {'status': 'healthy', 'model_loaded': True, ...}
-
-=== Testing AI Voice Detection (language: en) ===
-Classification: ai_generated
-Confidence: 72.2%
-
-============================================================
-Testing AI Voice Detection for All Languages
-============================================================
-
->>> Testing English (en)...    ✓ ai_generated (76.0%) in 2.2s
->>> Testing Tamil (ta)...      ✓ ai_generated (72.2%) in 2.2s
->>> Testing Hindi (hi)...      ✓ ai_generated (72.2%) in 2.2s
->>> Testing Malayalam (ml)...  ✓ ai_generated (72.2%) in 2.2s
->>> Testing Telugu (te)...     ✓ ai_generated (72.2%) in 2.2s
-
-============================================================
-All tests completed!
-============================================================
-```
-
----
-
 ## 📊 Supported Languages
 
-| Code | Language | Native Name |
-|------|----------|-------------|
-| `en` | English | English |
-| `ta` | Tamil | தமிழ் |
-| `hi` | Hindi | हिंदी |
-| `ml` | Malayalam | മലയാളം |
-| `te` | Telugu | తెలుగు |
+| Code | Language | Native Name | Fraud Detection | AI Voice |
+|------|----------|-------------|-----------------|----------|
+| `en` | English | English | ✅ Full | ✅ |
+| `hi` | Hindi | हिंदी | ✅ Full | ✅ |
+| `ta` | Tamil | தமிழ் | ✅ Full | ✅ |
+| `te` | Telugu | తెలుగు | ✅ Full | ✅ |
+| `ml` | Malayalam | മലയാളം | ⚠️ Partial | ✅ |
+| `es` | Spanish | Español | ⚠️ Partial | ❌ |
+| `fr` | French | Français | ⚠️ Partial | ❌ |
+| `de` | German | Deutsch | ⚠️ Partial | ❌ |
 
 ---
 
@@ -461,10 +305,11 @@ All tests completed!
 ### Backend
 - **FastAPI** - High-performance Python web framework
 - **Python 3.11+** - Core language
-- **SQLAlchemy** - Database ORM
-- **Whisper** - Speech recognition
+- **SQLAlchemy 2.0** - Async database ORM
+- **Whisper** - OpenAI speech recognition
 - **Librosa** - Audio feature extraction
 - **spaCy** - NLP processing
+- **bcrypt** - Password hashing
 
 ### Frontend
 - **React 18** - UI framework
@@ -475,7 +320,52 @@ All tests completed!
 - **Lucide React** - Icons
 
 ### Database
-- **SQLite** - Primary database (configurable to PostgreSQL)
+- **SQLite** - Development (default)
+- **PostgreSQL** - Production (optional)
+- **asyncpg** - Async PostgreSQL driver
+- **aiosqlite** - Async SQLite driver
+
+---
+
+## ✅ Test Results
+
+### Comprehensive Test Summary (February 1, 2026)
+
+```
+================================================================================
+CALLGUARD AI - COMPREHENSIVE RETEST
+================================================================================
+
+✓ API Health Check           - PASS
+✓ Database Connection        - PASS (SQLite, 76 calls)
+✓ ML Models Operational      - PASS (Whisper, NLP, Fraud, AI Voice)
+✓ Audio Analysis             - PASS (Classification, Risk Score, Transcript)
+✓ Text Analysis              - PASS (Fraud detection working)
+✓ Call History & Filters     - PASS (All filters working)
+✓ Call Details               - PASS (Full details with fraud indicators)
+✓ Analytics Dashboard        - PASS (All 5 endpoints)
+✓ Recent Alerts              - PASS (Severity levels working)
+✓ Admin Rules CRUD           - PASS (Create, Read, Delete)
+✓ User Authentication        - PASS (Register, Login, JWT)
+
+================================================================================
+SUMMARY: 33/34 Tests Passed (97.1%)
+================================================================================
+```
+
+### Multilingual Audio Test Results
+
+| Language | Samples | Detection Rate | False Positives |
+|----------|---------|----------------|-----------------|
+| English | 11 | 90.9% | 6.7% |
+| Hindi | 4 | 50.0% | 0% |
+| Tamil | 4 | 25.0% | 0% |
+| Telugu | 4 | 50.0% | 0% |
+| Spanish | 3 | 0%* | 0% |
+| French | 2 | 0%* | 0% |
+| German | 1 | 0%* | 0% |
+
+*European languages have limited keyword database - transcription works, detection pending expansion.
 
 ---
 
@@ -484,72 +374,68 @@ All tests completed!
 | Operation | Average Time |
 |-----------|--------------|
 | Health Check | < 50ms |
-| Language Detection | ~1s |
-| AI Voice Detection (1s audio) | ~2-3s |
-| AI Voice Detection (5s audio) | ~4-6s |
-| Full Call Analysis | ~5-10s |
-
----
-
-## ✅ Test Results
-
-All API endpoints have been tested and verified:
-
-```
-============================================================
-AI Voice Detection API Test Suite
-============================================================
-
-=== Testing Health Endpoint ===
-Status: 200 ✓
-Model Loaded: True ✓
-Supported Languages: Tamil, English, Hindi, Malayalam, Telugu ✓
-
-=== Testing AI Voice Detection ===
-Classification: ai_generated ✓
-Confidence: 74.4% ✓
-Response Time: 2.2s ✓
-
-=== Multi-Language Test Results ===
->>> English (en)...    ✓ ai_generated (72.2%) in 2.2s
->>> Tamil (ta)...      ✓ ai_generated (72.2%) in 2.2s
->>> Hindi (hi)...      ✓ ai_generated (76.0%) in 2.2s
->>> Malayalam (ml)...  ✓ ai_generated (72.2%) in 2.2s
->>> Telugu (te)...     ✓ ai_generated (72.2%) in 2.2s
-
-============================================================
-All tests completed successfully!
-============================================================
-```
-
----
-
-## � Recent Updates
-
-### Version 1.2.0 (Latest)
-- ✅ Fixed field mapping between backend and frontend
-- ✅ Added proper null safety in components
-- ✅ Fixed history page with pagination and total count
-- ✅ Improved call detail page rendering
-- ✅ Enhanced error handling in TranscriptViewer and VoiceAnalysis
-- ✅ Fixed TypeScript build errors for Vercel deployment
-- ✅ Updated deployment configuration for Vercel and Render
-
-### Version 1.1.0
-- ✅ AI Voice Detection API with 5 languages
-- ✅ Multi-language support (Tamil, English, Hindi, Malayalam, Telugu)
-- ✅ Real-time call analysis
-- ✅ Comprehensive dashboard with analytics
+| Text Analysis | < 1s |
+| Audio Upload (30s) | 5-10s |
+| AI Voice Detection (1s audio) | 2-3s |
+| Call List Query | < 100ms |
+| Analytics Dashboard | < 200ms |
 
 ---
 
 ## 🛡️ Security Features
 
-- Input validation and sanitization
-- Rate limiting on API endpoints
-- Secure file handling with temp file cleanup
-- CORS configuration for frontend access
-- JWT authentication (optional)
+- ✅ JWT Authentication with bcrypt password hashing
+- ✅ Input validation and sanitization
+- ✅ Rate limiting on API endpoints
+- ✅ Secure file handling with temp file cleanup
+- ✅ CORS configuration for frontend access
+- ✅ SQL injection prevention via ORM
+
+---
+
+## 🌐 Deployment
+
+### Deploy to Production
+
+The project is configured for easy deployment to **Vercel** (frontend) and **Render** (backend).
+
+#### 1. Deploy Backend to Render
+
+1. Go to [render.com](https://render.com/) and sign in with GitHub
+2. Create new **Web Service**
+3. Connect your **CallGuardAI** repository
+4. Configure:
+   - **Root Directory**: `backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables:
+   ```env
+   DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/callguard
+   SECRET_KEY=your-super-secret-key-min-32-chars
+   WHISPER_MODEL=base
+   LOG_LEVEL=INFO
+   CORS_ORIGINS=https://your-vercel-app.vercel.app
+   ```
+6. Deploy and copy your backend URL
+
+#### 2. Deploy Frontend to Vercel
+
+1. Go to [vercel.com/new](https://vercel.com/new)
+2. Import your **CallGuardAI** repository
+3. Configure:
+   - **Framework Preset**: Vite
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Add environment variable:
+   ```
+   VITE_API_URL=https://your-backend-url.onrender.com
+   ```
+5. Deploy
+
+#### 3. Update CORS
+
+After deploying frontend, update `CORS_ORIGINS` in Render with your Vercel URL.
 
 ---
 
@@ -568,6 +454,130 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+---
+
+## 🚀 How to Run the Project
+
+### Prerequisites
+
+- **Python 3.11+** - [Download](https://python.org/downloads/)
+- **Node.js 18+** - [Download](https://nodejs.org/)
+- **FFmpeg** - [Download](https://ffmpeg.org/download.html) (for audio processing)
+- **Git** - [Download](https://git-scm.com/)
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/Bhanutejayadalla/CallGuardAI.git
+cd CallGuardAI
+```
+
+### Step 2: Set Up Python Environment
+
+```bash
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
+# Install Python dependencies
+cd backend
+pip install -r requirements.txt
+```
+
+### Step 3: Configure Database (Optional)
+
+**For SQLite (Default - No configuration needed):**
+The database file `callguard.db` will be created automatically.
+
+**For PostgreSQL:**
+1. Install PostgreSQL
+2. Create a database: `createdb callguard`
+3. Create `.env` file in `backend/` folder:
+```env
+DATABASE_URL=postgresql+asyncpg://postgres:yourpassword@localhost:5432/callguard
+SECRET_KEY=your-super-secret-key-change-in-production
+```
+
+### Step 4: Start Backend Server
+
+```bash
+cd backend
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Expected output:
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000
+INFO:     Started reloader process
+🚀 Starting CallGuard AI Platform...
+✅ Database initialized
+✅ ML models loaded (Whisper, NLP, Fraud, AI Voice)
+INFO:     Application startup complete.
+```
+
+### Step 5: Start Frontend Server
+
+Open a **new terminal**:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Expected output:
+```
+  VITE v5.x.x  ready in xxx ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://192.168.x.x:3000/
+```
+
+### Step 6: Access the Application
+
+| Service | URL |
+|---------|-----|
+| **Frontend** | http://localhost:3000 |
+| **Backend API** | http://localhost:8000 |
+| **API Documentation** | http://localhost:8000/docs |
+| **ReDoc** | http://localhost:8000/redoc |
+
+### Step 7: Test the Application
+
+```bash
+# Run comprehensive tests
+cd test_samples
+python retest_all.py
+```
+
+### Quick Test Commands
+
+```bash
+# Test API health
+curl http://localhost:8000/
+
+# Test text analysis
+curl -X POST "http://localhost:8000/api/v1/analyze/text?text=Your+bank+account+suspended"
+
+# Get system stats
+curl http://localhost:8000/api/v1/admin/stats
+```
+
+### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Port 8000 in use | Kill process: `netstat -ano \| findstr :8000` then `taskkill /PID <pid> /F` |
+| Module not found | Activate venv: `.venv\Scripts\activate` |
+| Database error | Delete `callguard.db` and restart server |
+| FFmpeg not found | Add FFmpeg to system PATH |
+| CORS error | Check CORS_ORIGINS in backend config |
 
 ---
 

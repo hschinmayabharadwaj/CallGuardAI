@@ -169,45 +169,69 @@ async def get_system_stats(
     db: AsyncSession = Depends(get_db)
 ):
     """Get system-wide statistics for admin"""
-    # Total calls
-    total_result = await db.execute(select(func.count(Call.id)))
-    total_calls = total_result.scalar()
+    from app.core.config import settings
+    
+    # Check database connection
+    database_connected = True
+    database_type = "SQLite" if "sqlite" in settings.DATABASE_URL else "PostgreSQL"
+    
+    try:
+        # Total calls
+        total_result = await db.execute(select(func.count(Call.id)))
+        total_calls = total_result.scalar() or 0
+    except Exception:
+        database_connected = False
+        total_calls = 0
     
     # Calls by status
     status_counts = {}
     for status in CallStatus:
-        result = await db.execute(
-            select(func.count(Call.id)).where(Call.status == status)
-        )
-        status_counts[status.value] = result.scalar()
+        try:
+            result = await db.execute(
+                select(func.count(Call.id)).where(Call.status == status)
+            )
+            status_counts[status.value] = result.scalar() or 0
+        except Exception:
+            status_counts[status.value] = 0
     
     # Classification distribution
     classification_counts = {}
     for cls in CallClassification:
-        result = await db.execute(
-            select(func.count(Call.id)).where(Call.classification == cls)
-        )
-        classification_counts[cls.value] = result.scalar()
+        try:
+            result = await db.execute(
+                select(func.count(Call.id)).where(Call.classification == cls)
+            )
+            classification_counts[cls.value] = result.scalar() or 0
+        except Exception:
+            classification_counts[cls.value] = 0
     
     # Active rules count
-    rules_result = await db.execute(
-        select(func.count(DetectionRule.id)).where(DetectionRule.is_active == True)
-    )
-    active_rules = rules_result.scalar()
+    try:
+        rules_result = await db.execute(
+            select(func.count(DetectionRule.id)).where(DetectionRule.is_active == True)
+        )
+        active_rules = rules_result.scalar() or 0
+    except Exception:
+        active_rules = 0
     
-    # Average processing metrics (simulated for now)
-    avg_risk_result = await db.execute(
-        select(func.avg(Call.risk_score)).where(Call.status == CallStatus.COMPLETED)
-    )
-    avg_risk = avg_risk_result.scalar() or 0
+    # Average processing metrics
+    try:
+        avg_risk_result = await db.execute(
+            select(func.avg(Call.risk_score)).where(Call.status == CallStatus.COMPLETED)
+        )
+        avg_risk = avg_risk_result.scalar() or 0
+    except Exception:
+        avg_risk = 0
     
     return {
         "total_calls": total_calls,
         "status_breakdown": status_counts,
         "classification_breakdown": classification_counts,
         "active_rules": active_rules,
-        "average_risk_score": round(avg_risk, 2),
-        "system_health": "healthy",
+        "average_risk_score": round(float(avg_risk), 2),
+        "system_health": "healthy" if database_connected else "degraded",
+        "database_connected": database_connected,
+        "database_type": database_type,
         "ml_models": get_models_summary(),
         "last_updated": datetime.utcnow().isoformat()
     }
