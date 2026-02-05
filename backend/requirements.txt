@@ -20,7 +20,7 @@ aioredis==2.0.1
 
 # AI/ML - NLP
 spacy==3.7.2
-transformers==4.36.2
+# transformers==4.36.2  # OPTIONAL: Heavy (~2GB), has wheel compatibility issues on some systems
 torch==2.1.2
 sentence-transformers==2.2.2
 
@@ -29,7 +29,7 @@ sentence-transformers==2.2.2
 soundfile==0.12.1
 pydub==0.25.1
 numpy==1.26.3
-scipy==1.12.0
+# scipy==1.12.0  # OPTIONAL: Scientific computing (requires Fortran compiler)
 
 # AI/ML - Classification
 scikit-learn==1.4.0
